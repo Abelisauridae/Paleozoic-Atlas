@@ -99,6 +99,86 @@ CEPHALOPOD_CLASSES = {
     "cephalopoda",
     "nautiloidea",
 }
+NON_FISH_OSTEICHTHYES_ORDERS = {
+    "aistopoda",
+    "anomodontia",
+    "cotylosauria",
+    "cryptodontia",
+    "dicynodontia",
+    "pelycosauria",
+    "therocephalia",
+}
+NON_FISH_OSTEICHTHYES_FAMILIES = {
+    "acanthostegidae",
+    "anthracosauridae",
+    "archeriidae",
+    "baphetidae",
+    "brachystelechidae",
+    "bystrowianidae",
+    "caerorhachidae",
+    "caseidae",
+    "charassognathidae",
+    "chroniosuchidae",
+    "colosteidae",
+    "crassigyrinidae",
+    "diadectidae",
+    "discosauriscidae",
+    "edaphosauridae",
+    "elginerpetontidae",
+    "eoherpetontidae",
+    "eogyrinidae",
+    "gephyrostegidae",
+    "gorgonopidae",
+    "gymnarthridae",
+    "ichthyostegidae",
+    "karpinskiosauridae",
+    "kotlassidae",
+    "ophiacodontidae",
+    "ophiderpetontidae",
+    "persephonichthyidae",
+    "phlegethontiidae",
+    "pristerognathidae",
+    "seymouriidae",
+    "spathicephalidae",
+    "sphenacodontidae",
+    "tapinocephalidae",
+    "varanopidae",
+    "whatcheeriidae",
+}
+NON_FISH_OSTEICHTHYES_GENERA = {
+    "adelargo",
+    "adenoderma",
+    "adololopas",
+    "antlerpeton",
+    "aytonerpeton",
+    "casineria",
+    "densignathus",
+    "doragnathus",
+    "eldeceeon",
+    "eucritta",
+    "gaiasia",
+    "goniocephalus",
+    "hadronector",
+    "hynerpeton",
+    "kirktonecta",
+    "koilops",
+    "laosuchus",
+    "limnomis",
+    "mesanerpeton",
+    "ossirarus",
+    "parmastega",
+    "perittodus",
+    "persephonichthys",
+    "seroherpeton",
+    "sigournea",
+    "silvanerpeton",
+    "sinostega",
+    "solenodonsaurus",
+    "tantallognathus",
+    "ventastega",
+    "westlothiana",
+    "xylognathus",
+}
 
 
 def fetch_file(url: str, destination: Path) -> None:
@@ -223,11 +303,13 @@ def fauna_group(
     class_name: str | None,
     order: str | None,
     family: str | None,
+    genus: str | None,
 ) -> str:
     lowered_phylum = (phylum or "").lower()
     lowered_class = (class_name or "").lower()
     lowered_order = (order or "").lower()
     lowered_family = (family or "").lower()
+    lowered_genus = (genus or "").lower()
 
     if lowered_class == "trilobita":
         return "Trilobites"
@@ -272,6 +354,12 @@ def fauna_group(
     if lowered_phylum == "chordata":
         if lowered_class in JAWLESS_VERTEBRATE_CLASSES:
             return "Jawless vertebrates"
+        if (
+            lowered_order in NON_FISH_OSTEICHTHYES_ORDERS
+            or lowered_family in NON_FISH_OSTEICHTHYES_FAMILIES
+            or lowered_genus in NON_FISH_OSTEICHTHYES_GENERA
+        ):
+            return "Tetrapods"
         if lowered_class in FISH_CLASSES:
             return "Fishes"
         if lowered_class in AMPHIBIAN_CLASSES or lowered_order in AMPHIBIAN_CLASSES:
@@ -416,7 +504,8 @@ def make_species_record(
         "order": order,
         "className": class_name,
         "phylum": phylum,
-        "faunaGroup": fauna_group(phylum, class_name, order, family),
+        "faunaGroup": fauna_group(phylum, class_name, order, family, genus),
+        "sourceUsesBroadOsteichthyes": False,
         "taxonomyPath": [],
         "temporalRange": temporal_range,
         "pbdb": {
@@ -429,6 +518,9 @@ def make_species_record(
         "localities": [],
         "coordinateBounds": None,
     }
+    species["sourceUsesBroadOsteichthyes"] = (
+        species["className"] == "Osteichthyes" and species["faunaGroup"] != "Fishes"
+    )
     species["taxonomyPath"] = taxonomy_path(species)
     species["description"] = build_species_description(species)
     return species
@@ -574,6 +666,7 @@ def build_database(taxa_path: Path, occurrences_path: Path) -> dict:
                 species.get("className"),
                 species.get("order"),
                 species.get("family"),
+                species.get("genus"),
             )
             species["taxonomyPath"] = taxonomy_path(species)
 
@@ -640,6 +733,11 @@ def build_database(taxa_path: Path, occurrences_path: Path) -> dict:
             species.get("className"),
             species.get("order"),
             species.get("family"),
+            species.get("genus"),
+        )
+        species["sourceUsesBroadOsteichthyes"] = (
+            species.get("className") == "Osteichthyes"
+            and species.get("faunaGroup") != "Fishes"
         )
         species["taxonomyPath"] = taxonomy_path(species)
         species["description"] = build_species_description(species)

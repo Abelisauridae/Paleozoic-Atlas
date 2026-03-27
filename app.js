@@ -591,6 +591,16 @@ function renderDetailPanel(filtered, selected) {
   const taxonomyChips = (selected.taxonomyPath || [])
     .map((value) => `<span class="chip">${escapeHtml(value)}</span>`)
     .join("");
+  const broadOsteichthyesNote = selected.sourceUsesBroadOsteichthyes
+    ? `
+      <div class="source-note">
+        <strong>PBDB Taxonomy Note</strong>
+        The source taxonomy lists this species under the broad class Osteichthyes. The atlas groups it with
+        tetrapods for browsing because its order, family, or genus places it among early land vertebrates
+        rather than fishes.
+      </div>
+    `
+    : "";
 
   const localitiesMarkup = selected.localities.length
     ? selected.localities
@@ -621,6 +631,7 @@ function renderDetailPanel(filtered, selected) {
           <strong>Fauna Group</strong>
           ${escapeHtml(selected.faunaGroup || "Unknown")}
         </div>
+        ${broadOsteichthyesNote}
       </div>
     </div>
     <div class="fact-grid">
