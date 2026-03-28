@@ -15,6 +15,7 @@ const PERIOD_ORDER = [
 
 const manifest = window.PALEOZOIC_FAUNA_DATA;
 const world = window.PALEOZOIC_FAUNA_WORLD;
+const BUILD_VERSION = manifest?.metadata?.generatedAt || "1";
 
 let species = [];
 
@@ -264,6 +265,7 @@ function hydrateSpecies(records) {
 
 async function loadChunk(chunkInfo) {
   const url = new URL(`./data/${chunkInfo.file}`, window.location.href);
+  url.searchParams.set("v", BUILD_VERSION);
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load ${chunkInfo.file} (${response.status})`);
